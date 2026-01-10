@@ -1,0 +1,120 @@
+.feed-container {
+  padding: 40px 10%;
+  background-color: #f0f9ff;
+  min-height: 100vh;
+}
+
+.feed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.create-new-btn {
+  background: #000;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: transform 0.2s;
+}
+
+.create-new-btn:hover {
+  transform: scale(1.05);
+}
+
+.requests-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.student-request-card {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.category-pill {
+  background: #f1f5f9;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.status-indicator {
+  font-size: 12px;
+  color: #47d15d;
+  font-weight: bold;
+}
+
+.student-request-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 20px;
+}
+
+.student-request-card p {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.card-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 15px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.reward {
+  font-weight: 800;
+  color: #111827;
+}
+
+.help-btn {
+  background: #47d15d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.delete-icon-btn {
+  background:rgb(225, 27, 27);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .feed-container {
+    padding: 20px 5%; /* Less side padding */
+  }
+
+  .feed-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .requests-container {
+    grid-template-columns: 1fr; /* Force 1 card per row */
+  }
+}

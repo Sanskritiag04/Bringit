@@ -1,0 +1,77 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 80px;
+  background-color: transparent;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar-logo a {
+  font-size: 26px;
+  font-weight: 800;
+  color: #000;
+  text-decoration: none;
+}
+
+.navbar-logo span {
+  color: #47d15d; /* That signature green dot */
+}
+
+.navbar-links {
+  display: flex;
+  gap: 35px;
+}
+
+.navbar-links a {
+  text-decoration: none;
+  color: #555; /* Soft gray for links */
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.navbar-links a:hover {
+  color: #000;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.login-btn {
+  background: linear-gradient(90deg, #94e67e, #47d15d);
+  color: white;
+  padding: 12px 28px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(71, 209, 93, 0.3);
+}
+
+.page-content {
+  padding: 50px 80px;
+  text-align: center;
+  font-size: 20px;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 15px 20px; /* Reduce padding on mobile */
+    flex-direction: column; /* Stack logo and links */
+    gap: 15px;
+  }
+
+  .navbar-links {
+    gap: 15px;
+    font-size: 14px;
+    flex-wrap: wrap; /* Prevent links from going off-screen */
+    justify-content: center;
+  }
+
+  .signup-btn {
+    padding: 8px 20px;
+    font-size: 14px;
+  }
+}
