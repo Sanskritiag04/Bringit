@@ -50,6 +50,16 @@
   box-shadow: 0 4px 10px rgba(71, 209, 93, 0.3);
 }
 
+.logout-btn {
+  background: linear-gradient(90deg, #e67e7e, #d14747);
+  color: white;
+  padding: 12px 28px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(209, 71, 71, 0.3);
+}
+
 .page-content {
   padding: 50px 80px;
   text-align: center;

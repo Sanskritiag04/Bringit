@@ -1,12 +1,22 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link,useNavigate } from 'react-router-dom';
 import './Navbar.css';
 
 function Navbar() {
+    const navigate = useNavigate();
+  
+  const isLoggedIn = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/login');
+    window.location.reload();
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-logo">
-        {/* Clicking the logo takes you back Home */}
         <Link to="/">Bringit<span>.</span></Link>
       </div>
 
@@ -25,7 +35,14 @@ function Navbar() {
             <path d="M16 10a4 4 0 0 1-8 0"></path>
           </svg>
         </div> */}
-        <Link to="/login" className="login-btn">Login</Link>
+        {isLoggedIn ? (
+          <>
+            {/* <span className="user-name">Hi, {user.name}</span> */}
+            <button onClick={handleLogout} className="logout-btn">Logout</button>
+          </>
+        ) : (
+          <Link to="/login" className="login-btn">Login</Link>
+        )}
       </div>
     </nav>
   );

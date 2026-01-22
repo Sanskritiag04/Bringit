@@ -46,21 +46,7 @@ function Feed() {
     }
 };
 
-const handleDelete = async (requestId) => {
-  if (window.confirm("Are you sure you want to remove this request?")) {
-    try {
-      await axios.delete(`http://127.0.0.1:5000/api/requests/${requestId}`);
-      
-      // Update the UI by filtering out the deleted request
-      setRequests(prevRequests => prevRequests.filter(req => req._id !== requestId));
-      
-      alert("Request removed!");
-    } catch (err) {
-      console.error("Error deleting:", err);
-      alert("Failed to delete");
-    }
-  }
-};
+
   return (
     <div className="feed-container">
       <div className="feed-header">
@@ -90,9 +76,6 @@ const handleDelete = async (requestId) => {
 
               <div className="card-footer">
                 <div className="reward">Tip: {req.reward}</div>
-                <button className="delete-icon-btn" onClick={() => handleDelete(req._id)}>
-                  Delete
-                </button>
                 <button className="help-btn" onClick={() => handleGrab(req._id,req.item)}
                   disabled={req.status==='Accepted'}>
                     {req.status==='Accepted'?"Claimed":"I'll do it!"}

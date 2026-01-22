@@ -13,18 +13,11 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://127.0.0.1:5000/api/login', {
-        email,
-        password
-      });
+    const response = await axios.post('http://127.0.0.1:5000/api/login', { email, password });
 
-      // Save user info to LocalStorage (so the app remembers you logged in)
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      
-      setMessage("Login Successful! Redirecting...");
-      
-      // Go to Feed/Home page after 1.5 seconds
-      setTimeout(() => navigate('/explore'), 1500);
+    localStorage.setItem('token', response.data.token); // Save the "ID Card"
+    localStorage.setItem('user', JSON.stringify(response.data.user)); // Save user details
+      navigate('/profile');
 
     } catch (err) {
       setMessage(err.response?.data?.message || "Login failed");

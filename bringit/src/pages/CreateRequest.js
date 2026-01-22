@@ -4,30 +4,39 @@ import { useNavigate } from 'react-router-dom';
 import './CreateRequest.css';
 
 function CreateRequest() {
-  // 1. Create state to hold form data
   const [item, setItem] = useState('');
-  const [category, setCategory] = useState('Food'); // Default value
+  const [category, setCategory] = useState('Food');
   const [location, setLocation] = useState('');
   const [reward, setReward] = useState('');
+  const [description, setDescription] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false); // To prevent double-clicks
+  
   const navigate = useNavigate();
 
-  // 2. Function to handle submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Get the logged-in user from LocalStorage
-    const loggedInUser = JSON.parse(localStorage.getItem('user'));
+    // 1. FRONTEND VALIDATION
+    if (!item.trim() || !location.trim()) {
+      alert("Please fill in both the item and the delivery location!");
+      return;
+    }
 
+    setIsSubmitting(true); // Start loading
+
+    const loggedInUser = JSON.parse(localStorage.getItem('user'));
     if (!loggedInUser) {
       alert("Please login first!");
-      return navigate('/login');
+      navigate('/login');
+      return;
     }
 
     const newRequest = {
       item,
       category,
-      location, // Matches our Backend model
-      reward,
+      location,
+      reward: reward || "Thank you!", // Default reward if empty
+      description,
       postedBy: {
         name: loggedInUser.name,
         email: loggedInUser.email
@@ -36,11 +45,13 @@ function CreateRequest() {
 
     try {
       await axios.post('http://127.0.0.1:5000/api/requests', newRequest);
-      alert("Request Posted to Campus!");
-      navigate('/explore'); // Redirect to feed to see it!
+      alert("Request Posted Successfully! 🚀");
+      navigate('/explore');
     } catch (err) {
-      console.error(err);
-      alert("Error posting request. Check terminal.");
+      console.error("Post Error:", err.response?.data);
+      alert("Error: " + (err.response?.data?.message || "Server is down"));
+    } finally {
+      setIsSubmitting(false); // Stop loading regardless of success/fail
     }
   };
 
@@ -48,17 +59,13 @@ function CreateRequest() {
     <div className="form-page">
       <div className="form-box">
         <h2>What do you need?<span>.</span></h2>
-        
-        {/* 3. Add onSubmit to the form */}
         <form className="simple-form" onSubmit={handleSubmit}>
-          
-          <label>Item Description</label>
+          <label>Item Description *</label>
           <input 
             type="text" 
             placeholder="e.g. 2 Pens and a notebook" 
             value={item}
             onChange={(e) => setItem(e.target.value)}
-            required 
           />
 
           <label>Category</label>
@@ -69,13 +76,12 @@ function CreateRequest() {
             <option>Other</option>
           </select>
 
-          <label>Deliver to</label>
+          <label>Deliver to *</label>
           <input 
             type="text" 
             placeholder="e.g. Hostel 4, Room 10" 
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            required
           />
 
           <label>Reward/Tip (Optional)</label>
@@ -86,7 +92,13 @@ function CreateRequest() {
             onChange={(e) => setReward(e.target.value)}
           />
 
-          <button type="submit" className="post-btn">Post Request</button>
+          <button 
+            type="submit" 
+            className="post-btn" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Posting..." : "Post Request"}
+          </button>
         </form>
       </div>
     </div>

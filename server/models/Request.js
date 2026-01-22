@@ -2,10 +2,11 @@ const mongoose = require('mongoose');
 
 const RequestSchema = new mongoose.Schema({
     item: { type: String, required: true },
+    category:{type: String, required: true},
     location: { type: String, required: true },
-    reward: { type: String, required: true }, // e.g., "A coffee" or "50 Rupees"
+    reward: { type: String, default: "None" },
     description: { type: String },
-    status: { type: String, default: 'pending' }, // pending, accepted, completed
+    status: { type: String, default: 'pending' },
     postedBy: { 
         name: String,
         email: String 

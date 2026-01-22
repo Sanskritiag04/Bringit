@@ -14,7 +14,6 @@ function App() {
   return (
     <Router>
       <div className="App">
-        {/* Navbar is here once, so it shows on every page */}
         <Navbar />
         {/* This area changes when you click a link */}
         <Routes>
@@ -25,7 +24,6 @@ function App() {
           <Route path="/create-request" element={<CreateRequest />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/register" element={<Register />} />
-          {/* We will add /login and /create later */}
         </Routes>
         <Footer/>
       </div>
