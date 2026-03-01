@@ -105,3 +105,9 @@
     align-items: center;
   }
 }
+
+.history-section{
+  margin-top: '40px';
+  border-top: '1px solid #eee';
+  padding-top: '20px' ;
+}

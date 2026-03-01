@@ -26,24 +26,27 @@ function Feed() {
 
   if (loading) return <div className="feed-container"><h3>Loading Campus Feed...</h3></div>;
 
-  const handleGrab = async (requestId,item) => {
-  try {
-      const response = await axios.patch(`http://127.0.0.1:5000/api/requests/${requestId}/accept`);
-      
-      if (response.status === 200) {
-        alert(`Awesome! You've claimed: ${item}`);
-        
-        // 3. Update the UI locally so the button/status changes immediately
-        setRequests(prevRequests => 
-          prevRequests.map(req => 
-            req._id === requestId ? { ...req, status: 'Accepted' } : req
-          )
-        );
-      }
-    } catch (err) {
-      console.error("Error claiming request:", err);
-      alert("Something went wrong!");
-    }
+ const handleGrab = async (requestId, item) => { 
+  try { // 1. Get the logged-in user's info 
+  const loggedInUser = JSON.parse(localStorage.getItem('user'));
+
+// 2. Send the helperEmail in the body of the patch request
+const response = await axios.patch(`http://127.0.0.1:5000/api/requests/${requestId}/accept`, {
+  helperEmail: loggedInUser.email,
+  name: loggedInUser.name 
+});
+
+if (response.status === 200) {
+  alert(`Awesome! You've claimed: ${item}`);
+  setRequests(prevRequests => 
+    prevRequests.map(req => 
+      req._id === requestId ? { ...req, status: 'Accepted' } : req
+    )
+  );
+}
+} catch (err) { console.error("Error claiming request:", err); // Check if the error message from the backend exists 
+ const errorMsg = err.response?.data?.message || "Something went wrong!"; alert(errorMsg); 
+} 
 };
 
 
@@ -51,7 +54,6 @@ function Feed() {
     <div className="feed-container">
       <div className="feed-header">
         <h1>Campus Requests<span>.</span></h1>
-        {/* Make sure this path matches your App.js route for the "Post Request" page */}
         <Link to="/create-request" className="create-new-btn">
           + Create New Request
         </Link>
@@ -59,30 +61,31 @@ function Feed() {
 
       <div className="requests-container">
         {requests.length > 0 ? (
-          requests.map((req) => (
-            <div key={req._id} className="student-request-card"> {/* Changed req.id to req._id for MongoDB */}
+          requests.map((req) => {
+            const loggedInUser = JSON.parse(localStorage.getItem('user')); 
+            const isOwner = loggedInUser && loggedInUser.email === req.postedBy?.email;
+            return(
+            <div key={req._id} className="student-request-card">
               <div className="card-top">
-                {/* Fallback to 'General' if category isn't in your model yet */}
                 <span className="category-pill">{req.category || "General"}</span>
                 <span className="status-indicator">{req.status}</span>
               </div>
               
               <div className="card-body">
                 <h3>{req.item}</h3>
-                <p>📍 Deliver to: <strong>{req.location}</strong></p> {/* Changed deliverTo to location */}
+                <p>📍 Deliver to: <strong>{req.location}</strong></p>
                 {req.description && <p className="desc">{req.description}</p>}
                 <p className="posted-by">By: {req.postedBy?.name || "Unknown"}</p>
               </div>
 
               <div className="card-footer">
                 <div className="reward">Tip: {req.reward}</div>
-                <button className="help-btn" onClick={() => handleGrab(req._id,req.item)}
-                  disabled={req.status==='Accepted'}>
-                    {req.status==='Accepted'?"Claimed":"I'll do it!"}
-                </button>
+                {isOwner ? ( <span className="help-btn"> Your Post </span> ) : (
+                   <button className="help-btn" onClick={() => handleGrab(req._id, req.item)} disabled={req.status === 'Accepted'} > 
+                   {req.status === 'Accepted' ? "Claimed" : "I'll do it!"} </button> )}
               </div>
             </div>
-          ))
+          );})
         ) : (
           <div className="empty-state">
             <div className="empty-icon">☕</div>

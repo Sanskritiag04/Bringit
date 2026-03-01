@@ -11,7 +11,9 @@ const RequestSchema = new mongoose.Schema({
         name: String,
         email: String 
     },
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+    acceptedBy: { type: String, default: null },
+    acceptedByName: { type: String },
 });
 
 module.exports = mongoose.model('Request', RequestSchema);

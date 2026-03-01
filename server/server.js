@@ -135,7 +135,6 @@ app.post('/api/requests', async (req, res) => {
 // Route to get ALL requests (for the Explore/Feed page)
 app.get('/api/requests', async (req, res) => {
     try {
-        // Only find requests where status is NOT 'Completed'
         const allRequests = await Request.find({ status: { $ne: 'Completed' } }).sort({ createdAt: -1 });
         res.json(allRequests);
     } catch (error) {
@@ -148,11 +147,11 @@ app.get('/api/requests', async (req, res) => {
 app.patch('/api/requests/:id/accept', async (req, res) => {
     try {
         const { id } = req.params;
-        
+        const { helperEmail, name } = req.body;
         // Find the request and update its status
         const updatedRequest = await Request.findByIdAndUpdate(
             id, 
-            { status: 'Accepted' }, 
+            { status: 'Accepted', acceptedBy: helperEmail, acceptedByName: name }, 
             { new: true } // This returns the updated version of the document
         );
 
@@ -183,15 +182,12 @@ app.delete('/api/requests/:id', async (req, res) => {
 });
 
 // Get requests posted by a specific user
-app.get('/api/my-requests/:email', async (req, res) => {
-    try {
-        const email = req.params.email;
-        // Find requests where postedBy.email matches the parameter
-        const myRequests = await Request.find({ "postedBy.email": email }).sort({ createdAt: -1 });
-        res.json(myRequests);
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching your requests" });
-    }
+app.get('/api/my-requests/:email', async (req, res) => { 
+    try { const email = req.params.email; 
+        const myRequests = await Request.find({ $or: [ { "postedBy.email": email }, { "acceptedBy": email } ] }).sort({ createdAt: -1 }); 
+        res.json(myRequests); } 
+        catch (error) { res.status(500).json({ message: "Error" }); 
+    } 
 });
 
 app.patch('/api/requests/:id/complete', async (req, res) => {
@@ -213,4 +209,57 @@ app.patch('/api/requests/:id/complete', async (req, res) => {
     }
 });
 
-app.listen(5000, () => console.log("Server running on port 5000"));
+const http = require('http');
+const { Server } = require('socket.io');
+const Message = require('./models/Message');
+const server = http.createServer(app);
+const io = new Server(server, {
+cors: { origin: "http://localhost:3000" } // Your React URL
+});
+
+io.on('connection', (socket) => {
+console.log('A user connected:', socket.id);
+
+// Join a specific room based on Request ID
+socket.on('join_room', (roomId) => {
+    socket.join(roomId);
+    console.log(`User joined room: ${roomId}`);
+});
+
+// Listen for a message and send it to the specific room
+socket.on('send_message', async(data) => {
+    // io.to(data.roomId).emit('receive_message', data);
+    try {
+        console.log("Saving message for room:", data.roomId);
+// 1. Save to Database
+const newMessage = new Message({
+requestId: data.roomId,
+sender: data.sender,
+senderEmail: data.senderEmail,
+text: data.text,
+time: data.time
+});
+await newMessage.save();
+
+    // 2. Broadcast to everyone in the room
+    io.to(data.roomId).emit('receive_message', data);
+} catch (err) {
+    console.log("Error saving message:", err);
+}
+});
+
+socket.on('disconnect', () => {
+    console.log('User disconnected');
+});
+});
+
+app.get('/api/messages/:requestId', async (req, res) => {
+try {
+const messages = await Message.find({ requestId: req.params.requestId }).sort({ createdAt: 1 });
+res.json(messages);
+} catch (error) {
+res.status(500).json({ message: "Error fetching history" });
+}
+});
+// IMPORTANT: Change app.listen to server.listen
+server.listen(5000, () => console.log('Server running on 5000'));
