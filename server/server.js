@@ -1,4 +1,14 @@
 const express = require('express');
+const nodemailer = require("nodemailer");
+
+let otpStore = {};
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "YOUR_EMAIL@gmail.com",
+    pass: "YOUR_APP_PASSWORD"
+  }
+});
 const mongoose = require('mongoose');
 const cors = require('cors');
 const User = require('./models/User');
@@ -263,3 +273,47 @@ res.status(500).json({ message: "Error fetching history" });
 });
 // IMPORTANT: Change app.listen to server.listen
 server.listen(5000, () => console.log('Server running on 5000'));
+
+app.post("/send-otp", async (req, res) => {
+
+  const { email } = req.body;
+
+  const otp = Math.floor(100000 + Math.random() * 900000);
+
+  otpStore[email] = {
+    otp: otp,
+    expiry: Date.now() + 5 * 60 * 1000
+  };
+
+  await transporter.sendMail({
+    from: "YOUR_EMAIL@gmail.com",
+    to: email,
+    subject: "Bringit Email Verification",
+    text: `Your OTP is ${otp}`
+  });
+
+  res.json({ message: "OTP sent successfully" });
+
+});
+app.post("/verify-otp", (req, res) => {
+
+  const { email, otp } = req.body;
+
+  const record = otpStore[email];
+
+  if (!record) {
+    return res.json({ message: "OTP not requested" });
+  }
+
+  if (Date.now() > record.expiry) {
+    return res.json({ message: "OTP expired" });
+  }
+
+  if (record.otp == otp) {
+    delete otpStore[email];
+    return res.json({ message: "Email verified successfully" });
+  }
+
+  res.json({ message: "Invalid OTP" });
+
+});
