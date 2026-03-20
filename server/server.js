@@ -5,16 +5,27 @@ const User = require('./models/User');
 const bcrypt = require('bcrypt');
 const Request = require('./models/Request'); 
 
+
 require('dotenv').config();
 
 const app = express();
+
+const http = require('http');
+const { Server } = require('socket.io');
+const Message = require('./models/Message');
+const server = http.createServer(app);
+const io = new Server(server, {
+cors: { origin: "http://localhost:3000" } // Your React URL
+});
+const mongoURI = process.env.MONGO_URI;
+
 // Middleware
 app.use(cors());
 app.use(express.json()); // This allows the server to read JSON data from React
 // 1. DATABASE CONNECTION
 // 'bringit' at the end of the URL is the name the database will have in Compass
-mongoose.connect('mongodb://localhost:27017/bringit')
-    .then(() => console.log("Connected to MongoDB Locally"))
+mongoose.connect(mongoURI)
+    .then(() => console.log("Connected to MongoDB Atlas"))
     .catch((err) => console.error("Could not connect to MongoDB", err));
 
 // 2. THE REGISTER ROUTE
@@ -43,42 +54,6 @@ app.post('/api/register', async (req, res) => {
 });
 
 
-// Login Route
-// app.post('/api/login', async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     // 1. Find the user by email
-//     const user = await User.findOne({ email });
-//     if (!user) {
-//       // It's better to keep the message vague for security, 
-//       // but for now let's be specific for debugging
-//       return res.status(400).json({ message: "User not found!" });
-//     }
-
-//     // 2. Compare the typed password with the hashed password in DB
-//     const isMatch = await bcrypt.compare(password, user.password);
-    
-//     if (!isMatch) {
-//       return res.status(400).json({ message: "Invalid credentials!" });
-//     }
-
-//     // 3. Successful Login
-//     // For now, we will send back the user details (minus password)
-//     res.status(200).json({
-//       message: "Login successful!",
-//       user: {
-//         id: user._id,
-//         name: user.name,
-//         email: user.email
-//       }
-//     });
-
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Server error during login" });
-//   }
-// });
 
 const jwt = require('jsonwebtoken');
 
@@ -147,16 +122,34 @@ app.get('/api/requests', async (req, res) => {
 app.patch('/api/requests/:id/accept', async (req, res) => {
     try {
         const { id } = req.params;
-        const { helperEmail, name } = req.body;
+        const { helperEmail, helperName } = req.body;
         // Find the request and update its status
+        if (!helperEmail || !helperName) {
+            return res.status(400).json({ message: "Helper information is missing" });
+        }
         const updatedRequest = await Request.findByIdAndUpdate(
             id, 
-            { status: 'Accepted', acceptedBy: helperEmail, acceptedByName: name }, 
-            { new: true } // This returns the updated version of the document
+            { status: 'Accepted', acceptedBy: helperEmail, acceptedByName: helperName }, 
+            {returnDocument: 'after'} 
         );
 
         if (!updatedRequest) {
+            console.log("Request not found for ID:", id);
             return res.status(404).json({ message: "Request not found" });
+        }
+
+        if (updatedRequest.postedBy && updatedRequest.postedBy.email) {
+            console.log("Emitting status update for:", updatedRequest.postedBy.email);
+            
+            io.emit('status_updated', {
+                type: 'ACCEPTED',
+                item: updatedRequest.item,
+                posterEmail: updatedRequest.postedBy.email,
+                helperName: helperName
+            });
+            console.log("Emit complete!");
+        } else {
+            console.log("Warning: Request found but postedBy.email is missing. Notification skipped.");
         }
 
         res.json({ message: "Status updated!", request: updatedRequest });
@@ -209,13 +202,7 @@ app.patch('/api/requests/:id/complete', async (req, res) => {
     }
 });
 
-const http = require('http');
-const { Server } = require('socket.io');
-const Message = require('./models/Message');
-const server = http.createServer(app);
-const io = new Server(server, {
-cors: { origin: "http://localhost:3000" } // Your React URL
-});
+
 
 io.on('connection', (socket) => {
 console.log('A user connected:', socket.id);
@@ -228,9 +215,7 @@ socket.on('join_room', (roomId) => {
 
 // Listen for a message and send it to the specific room
 socket.on('send_message', async(data) => {
-    // io.to(data.roomId).emit('receive_message', data);
     try {
-        console.log("Saving message for room:", data.roomId);
 // 1. Save to Database
 const newMessage = new Message({
 requestId: data.roomId,
@@ -242,7 +227,18 @@ time: data.time
 await newMessage.save();
 
     // 2. Broadcast to everyone in the room
+    // io.to(data.roomId).emit('receive_message', data);
+    // socket.broadcast.emit('receive_message', data);
+    // socket.to(data.roomId).emit('receive_message', data); 
+    
+    // // 2. Also send it back to the sender so their screen updates
+    // socket.emit('receive_message', data);
+
     io.to(data.roomId).emit('receive_message', data);
+
+        // 2. Send a separate event for Notifications (for everyone ELSE)
+        // We use a different name 'notify_new_message' to avoid double-triggering Chat.js
+        socket.broadcast.emit('notify_new_message', data);
 } catch (err) {
     console.log("Error saving message:", err);
 }

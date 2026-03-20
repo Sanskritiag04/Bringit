@@ -12,7 +12,7 @@ function Feed() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:5000/api/requests');
+        const response = await axios.get('http://localhost:5000/api/requests');
         setRequests(response.data); // Set the database items to our state
         setLoading(false);
       } catch (err) {
@@ -31,9 +31,9 @@ function Feed() {
   const loggedInUser = JSON.parse(localStorage.getItem('user'));
 
 // 2. Send the helperEmail in the body of the patch request
-const response = await axios.patch(`http://127.0.0.1:5000/api/requests/${requestId}/accept`, {
+const response = await axios.patch(`http://localhost:5000/api/requests/${requestId}/accept`, {
   helperEmail: loggedInUser.email,
-  name: loggedInUser.name 
+  helperName: loggedInUser.name 
 });
 
 if (response.status === 200) {
@@ -43,6 +43,7 @@ if (response.status === 200) {
       req._id === requestId ? { ...req, status: 'Accepted' } : req
     )
   );
+  window.location.reload();
 }
 } catch (err) { console.error("Error claiming request:", err); // Check if the error message from the backend exists 
  const errorMsg = err.response?.data?.message || "Something went wrong!"; alert(errorMsg); 

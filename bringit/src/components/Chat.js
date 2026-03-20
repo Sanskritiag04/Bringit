@@ -1,87 +1,99 @@
-import React, { useState, useEffect ,useRef} from 'react';
-import io from 'socket.io-client';
+import React, { useState, useEffect, useRef } from 'react';
+import socket from './Socket'; // Ensure this matches your filename
 import './Chat.css';
-import  axios  from 'axios';
-
-// Connect to your backend port
-const socket = io.connect("http://127.0.0.1:5000");
+import axios from 'axios';
 
 function Chat({ requestId, user, recipientName, onClose }) {
-const [message, setMessage] = useState("");
-const [chatHistory, setChatHistory] = useState([]);
-const messagesEndRef = useRef(null); // Create a reference
+  const [message, setMessage] = useState("");
+  const [chatHistory, setChatHistory] = useState([]);
+  const messagesEndRef = useRef(null);
 
-const scrollToBottom = () => {
-messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-};
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Scroll to bottom whenever history updates
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatHistory]);
 
 
-const fetchHistory = async () => {
-const res = await axios.get(`http://localhost:5000/api/messages/${requestId}`);
-setChatHistory(res.data);
-};
+  useEffect(() => {
+  const fetchHistory = async () => {
+    const res = await axios.get(`http://localhost:5000/api/messages/${requestId}`);
+    setChatHistory(res.data);
+  };
+  fetchHistory();
+  
+  socket.emit('join_room', requestId);
 
+  // Define the handler
+  const onMessageReceived = (data) => {
+    // CRITICAL: Check if message is for THIS room 
+    // AND check if the message ID/timestamp already exists in state to prevent duplicates
+    setChatHistory((prev) => {
+      const exists = prev.find(m => m.time === data.time && m.text === data.text);
+      if (exists) return prev; 
+      return [...prev, data];
+    });
+  };
 
-useEffect(() => {
-scrollToBottom(); // Scroll whenever chatHistory changes
-}, [chatHistory]);
+  socket.on('receive_message', onMessageReceived);
 
-useEffect(() => {
-fetchHistory();
-// Join the unique room for this specific request
-socket.emit('join_room', requestId);
-
-// Listen for incoming messages
-socket.on('receive_message', (data) => {
-  setChatHistory((prev) => [...prev, data]);
-});
-
-// Cleanup when closing chat
-return () => socket.off('receive_message');
+  return () => {
+    socket.off('receive_message', onMessageReceived);
+  };
 }, [requestId]);
 
-const sendMessage = () => {
-if (message.trim() !== "") {
-const messageData = {
-roomId: requestId,
-sender: user.name,
-senderEmail: user.email,
-text: message,
-time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-};
+  const sendMessage = () => {
+    if (message.trim() !== "") {
+      const messageData = {
+        roomId: requestId,
+        sender: user.name,
+        senderEmail: user.email,
+        text: message,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
 
-  socket.emit('send_message', messageData);
-  // setChatHistory((prev) => [...prev, messageData]);
-  setMessage("");
-}
-};
+      socket.emit('send_message', messageData);
+      setMessage("");
+    }
+  };
 
-return (
-<div className="chat-overlay">
-<div className="chat-header">
-<span>Chat with {recipientName}</span>
-<button onClick={onClose}>×</button>
-</div>
+  return (
+    <div className="chat-overlay">
+      <div className="chat-window">
+        <div className="chat-header">
+          <span>Chat with {recipientName || "User"}</span>
+          <button className="close-btn" onClick={onClose}>&times;</button>
+        </div>
 
-  <div className="chat-messages">
-    {chatHistory.map((msg, index) => (
-      <div key={index} className={msg.senderEmail === user.email ? "message sent" : "message received"}>
-        {msg.text}
-        <span>{msg.time}</span>
+        <div className="chat-messages">
+          {chatHistory.map((msg, index) => (
+            <div 
+              key={index} 
+              className={msg.senderEmail === user.email ? "message sent" : "message received"}
+            >
+              <div className="msg-text">{msg.text}</div>
+              <span className="msg-time">{msg.time}</span>
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+
+        <div className="chat-input">
+          <input
+            type="text"
+            placeholder="Type a message..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+          />
+          <button onClick={sendMessage}>➤</button>
+        </div>
       </div>
-    ))}
-    {/* Empty div at the bottom to "anchor" the scroll */}
-    <div ref={messagesEndRef} />
-  </div>
-
-  <div className="chat-input">
-    <input 
-       // ... your input props ...
-    />
-    <button onClick={sendMessage}>➤</button>
-  </div>
-</div>
-);
+    </div>
+  );
 }
 
 export default Chat;

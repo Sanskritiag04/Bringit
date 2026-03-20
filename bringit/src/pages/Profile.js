@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Profile.css';
 import Chat from '../components/Chat';
+import socket from '../components/Socket'; 
 
 function Profile() {
   const [myActiveRequests, setMyActiveRequests] = useState([]);
@@ -17,9 +18,40 @@ function Profile() {
     }
   }, []);
 
+  // Add this inside the Profile function, before the return
+useEffect(() => {
+  const handleOpenChat = (event) => {
+    const data = event.detail;
+    // Construct a temporary request object so the Chat component opens correctly
+    const fakeRequest = {
+      _id: data.roomId,
+      postedBy: { 
+        name: data.sender, 
+        email: data.senderEmail 
+      },
+      item: "New Message"
+    };
+    setActiveChat(fakeRequest);
+  };
+
+  window.addEventListener('openChat', handleOpenChat);
+  return () => window.removeEventListener('openChat', handleOpenChat);
+}, []);
+
+useEffect(() => {
+  socket.on('status_updated', (data) => {
+    // If I am the poster, refresh my list to show the "Accepted" status immediately
+    if (user && user.email === data.posterEmail) {
+      fetchMyRequests(user.email); 
+    }
+  });
+
+  return () => socket.off('status_updated');
+}, [user]);
+
   const fetchMyRequests = async (email) => {
     try {
-      const response = await axios.get(`http://127.0.0.1:5000/api/my-requests/${email}`);
+      const response = await axios.get(`http://localhost:5000/api/my-requests/${email}`);
       setMyActiveRequests(response.data);
     } catch (err) {
       console.error("Error loading profile data", err);
@@ -31,7 +63,7 @@ function Profile() {
 
   if (window.confirm("Are you sure you want to cancel this request?")) {
     try {
-      await axios.delete(`http://127.0.0.1:5000/api/requests/${requestId}`, {
+      await axios.delete(`http://localhost:5000/api/requests/${requestId}`, {
         headers: {
           'user-email': loggedInUser.email 
         }
@@ -50,7 +82,7 @@ function Profile() {
 const handleComplete = async (id) => {
   const loggedInUser = JSON.parse(localStorage.getItem('user'));
   try {
-    await axios.patch(`http://127.0.0.1:5000/api/requests/${id}/complete`, {}, {
+    await axios.patch(`http://localhost:5000/api/requests/${id}/complete`, {}, {
       headers: { 'user-email': loggedInUser.email }
     });
     

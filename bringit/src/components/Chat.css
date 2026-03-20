@@ -24,6 +24,10 @@ justify-content: space-between;
 align-items: center;
 font-size: 1rem;
 font-weight: 600;
+flex-shrink: 0;   /* Prevents the header from squishing when messages grow */
+  position: sticky; /*.chat-header as a fallback to keep it at the top */
+  top: 0;
+z-index: 2001;
 }
 
 .chat-header button {
@@ -36,9 +40,9 @@ line-height: 1;
 }
 
 .chat-messages {
-flex: 1; /* This takes up ALL available space in the middle /
+flex: 1; /* This takes up ALL available space in the middle */
 padding: 15px;
-overflow-y: auto; / This allows scrolling inside the message area */
+overflow-y: auto; /*This allows scrolling inside the message area */
 background-color: #f0f2f5;
 display: flex;
 flex-direction: column;
@@ -92,6 +96,7 @@ display: flex;
 align-items: center;
 gap: 10px;
 border-top: 1px solid #eee;
+flex-shrink: 0;
 }
 
 .chat-input input {
