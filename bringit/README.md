@@ -4,7 +4,7 @@ BringIt is a full-stack real-time web application where users can post requests 
 
 ## Live Demo & Links
 - **Backend API:** [https://bringit-8tbc.onrender.com](https://bringit-8tbc.onrender.com)
-- **Frontend App:** *(Once you deploy your frontend, add that link here!)*
+- **Frontend App:**[https://bringit-blond.vercel.app](https://bringit-blond.vercel.app/)
 
 ## Key Features
 - **Real-Time Notifications:** Instant popups (Toasts) when someone claims/accepts your request, powered by **Socket.io**.
@@ -23,4 +23,4 @@ BringIt is a full-stack real-time web application where users can post requests 
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/Sanskritiag04/Bringit.git](https://github.com/Sanskritiag04/Bringit.git)
+   git clone https://github.com/Sanskritiag04/Bringit.git
