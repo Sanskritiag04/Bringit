@@ -22,7 +22,7 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/register', formData);
+      const response = await axios.post('https://bringit-8tbc.onrender.com/api/register', formData);
       setMessage(response.data.message);
       
       // If successful, wait 2 seconds then go to login

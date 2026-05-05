@@ -51,7 +51,7 @@ useEffect(() => {
 
   const fetchMyRequests = async (email) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/my-requests/${email}`);
+      const response = await axios.get(`https://bringit-8tbc.onrender.com/api/my-requests/${email}`);
       setMyActiveRequests(response.data);
     } catch (err) {
       console.error("Error loading profile data", err);
@@ -63,7 +63,7 @@ useEffect(() => {
 
   if (window.confirm("Are you sure you want to cancel this request?")) {
     try {
-      await axios.delete(`http://localhost:5000/api/requests/${requestId}`, {
+      await axios.delete(`https://bringit-8tbc.onrender.com/api/requests/${requestId}`, {
         headers: {
           'user-email': loggedInUser.email 
         }
@@ -82,7 +82,7 @@ useEffect(() => {
 const handleComplete = async (id) => {
   const loggedInUser = JSON.parse(localStorage.getItem('user'));
   try {
-    await axios.patch(`http://localhost:5000/api/requests/${id}/complete`, {}, {
+    await axios.patch(`https://bringit-8tbc.onrender.com/api/requests/${id}/complete`, {}, {
       headers: { 'user-email': loggedInUser.email }
     });
     

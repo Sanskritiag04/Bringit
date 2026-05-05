@@ -59,7 +59,7 @@ useEffect(() => {
 
     // LOGIC: Sirf POSTER ko notification dikhao
     if (currentUser.email === data.posterEmail) {
-        toast.success(`🎉 Good news! ${data.helperName} ne aapka "${data.item}" accept kar liya hai!`, {
+        toast.success(`🎉 Good news! ${data.helperName} accepted your request of "${data.item}" !`, {
             position: "top-center",
             autoClose: 6000
         });

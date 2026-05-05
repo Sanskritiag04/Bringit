@@ -15,7 +15,7 @@ const { Server } = require('socket.io');
 const Message = require('./models/Message');
 const server = http.createServer(app);
 const io = new Server(server, {
-cors: { origin: "http://localhost:3000" } // Your React URL
+cors: { origin: ["http://localhost:3000", "https://bringit-8tbc.onrender.com"] } // Your React URL
 });
 const mongoURI = process.env.MONGO_URI;
 

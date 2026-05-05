@@ -12,7 +12,7 @@ function Feed() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/requests');
+        const response = await axios.get('https://bringit-8tbc.onrender.com/api/requests');
         setRequests(response.data); // Set the database items to our state
         setLoading(false);
       } catch (err) {
@@ -31,7 +31,7 @@ function Feed() {
   const loggedInUser = JSON.parse(localStorage.getItem('user'));
 
 // 2. Send the helperEmail in the body of the patch request
-const response = await axios.patch(`http://localhost:5000/api/requests/${requestId}/accept`, {
+const response = await axios.patch(`https://bringit-8tbc.onrender.com/api/requests/${requestId}/accept`, {
   helperEmail: loggedInUser.email,
   helperName: loggedInUser.name 
 });

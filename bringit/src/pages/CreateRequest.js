@@ -44,7 +44,7 @@ function CreateRequest() {
     };
 
     try {
-      await axios.post('http://127.0.0.1:5000/api/requests', newRequest);
+      await axios.post('https://bringit-8tbc.onrender.com/api/requests', newRequest);
       alert("Request Posted Successfully! 🚀");
       navigate('/explore');
     } catch (err) {

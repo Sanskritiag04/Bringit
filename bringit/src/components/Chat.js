@@ -20,7 +20,7 @@ function Chat({ requestId, user, recipientName, onClose }) {
 
   useEffect(() => {
   const fetchHistory = async () => {
-    const res = await axios.get(`http://localhost:5000/api/messages/${requestId}`);
+    const res = await axios.get(`http://bringit-8tbc.onrender.com/api/messages/${requestId}`);
     setChatHistory(res.data);
   };
   fetchHistory();
